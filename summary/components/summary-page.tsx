@@ -1,30 +1,36 @@
 "use client";
 
-import * as React from "react";
 import { Header } from "./header";
 import { SummaryForm } from "./summary-form";
 import { SummaryResult } from "./summary-result";
 import { SummaryFooter } from "./summary-footer";
 import { useSummary } from "../use-hook";
 import { toast } from "sonner";
+import type { SummaryResponse } from "../service";
+import { useState } from "react";
 
 export function SummaryPage() {
-  const [url, setUrl] = React.useState("");
+  const [url, setUrl] = useState("https://www.himanshutamoli.site");
   const { mutateAsync: summary, isPending, error } = useSummary();
-  const [data, setdata] =React.useState<{ text: string }>();
+  const [data, setData] = useState<SummaryResponse | null>(null);
 
   const handleSummarize = (e: React.FormEvent) => {
     e.preventDefault();
     if (!url.trim()) return;
-    toast.promise(summary({ url }), {
-      loading: "Summarizing",
-      success: (data) => {
-        setdata(data);
-        return "Summary generated successfully";
+
+    toast.promise(summary({ url: url.trim() }), {
+      loading: "Processing (checking database & Inngest)...",
+      success: (result) => {
+        setData(result);
+        return result.cached
+          ? "Loaded existing summary from database!"
+          : "Summary and scraper result ready!";
       },
-      error: (error) => {
-        console.log(error);
-        return "Failed to generate summary";
+      error: (err) => {
+        console.error(err);
+        return err instanceof Error
+          ? err.message
+          : "Failed to generate summary";
       },
     });
   };
@@ -55,11 +61,7 @@ export function SummaryPage() {
             isLoading={isPending}
           />
 
-          <SummaryResult
-            summary={data?.text ?? null}
-            isLoading={isPending}
-            error={error}
-          />
+          <SummaryResult data={data} isLoading={isPending} error={error} />
         </section>
       </div>
 

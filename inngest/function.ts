@@ -1,6 +1,7 @@
 import { getGroqChatCompletion } from "@/lib/llm";
 import { inngest } from "./client";
 import { scrapeUrl } from "@/lib/scrapper";
+import { connectDB, SummaryModel } from "@/lib/db";
 
 export const summarizeWebsite = inngest.createFunction(
   {
@@ -18,6 +19,19 @@ export const summarizeWebsite = inngest.createFunction(
     const summary = await step.run("summarize-with-groq", async () => {
       const completion = await getGroqChatCompletion(page);
       return completion.choices[0]?.message?.content ?? "";
+    });
+
+    await step.run("save-to-db", async () => {
+      await connectDB();
+      await SummaryModel.create({
+        url: event.data.url,
+        title: page?.title || "",
+        text: page?.text || "",
+        summary,
+        runId: event.data.runId,
+      });
+
+      return { saved: true };
     });
 
     return {

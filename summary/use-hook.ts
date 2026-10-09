@@ -1,10 +1,10 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { summaryService } from "./service";
+import { summaryService, type SummaryResponse } from "./service";
 
 export const useSummary = () => {
-  return useMutation({
+  return useMutation<SummaryResponse, Error, { url: string }>({
     mutationFn: ({ url }: { url: string }) => summaryService.scrapeUrl(url),
   });
 };

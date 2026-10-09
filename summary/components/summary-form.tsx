@@ -26,7 +26,7 @@ export function SummaryForm({
           <Input
             type="url"
             required
-            placeholder="https://example.com/article"
+            placeholder="https://www.himanshutamoli.site"
             value={url}
             onChange={(e) => onUrlChange(e.target.value)}
             className="h-12 pl-10 text-base sm:text-sm bg-zinc-950/90 border-zinc-800 text-white placeholder:text-zinc-600 focus-visible:border-zinc-500 focus-visible:ring-1 focus-visible:ring-zinc-500 rounded-lg shadow-inner"
