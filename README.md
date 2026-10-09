@@ -1,36 +1,121 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Web Scraper
+
+A simple AI-powered web scraper that takes a webpage URL and generates a clear summary of its main ideas.
+
+## What it does
+
+1. Enter a webpage URL.
+2. The app downloads the webpage.
+3. It extracts readable content from the page and removes unnecessary elements such as scripts, styles, navigation, headers, and footers.
+4. The extracted content is sent to Groq AI.
+5. Groq generates a concise summary.
+6. The page content and summary are saved in MongoDB.
+7. If the same URL was summarized before, the app returns the saved result instead of processing it again.
+
+## Tech Stack
+
+- **Next.js 16** – Full-stack React framework and API routes
+- **React 19** – User interface
+- **TypeScript** – Type-safe development
+- **Tailwind CSS** – Styling
+- **Cheerio** – Extracts readable text from HTML pages
+- **Groq SDK** – Generates AI summaries
+- **Inngest** – Runs the scraping and summarization workflow with retries
+- **MongoDB + Mongoose** – Stores webpages and summaries
+- **Axios** – Sends requests from the frontend to the API
+- **Zod** – Validates environment variables
+- **React Query** – Manages API requests and loading states
+
+## How the application works
+
+The frontend sends the URL to `POST /api/summary`.
+
+The API first checks MongoDB for an existing summary:
+
+- If a summary exists, it is returned immediately.
+- If no summary exists, the API sends a `scraper/requested` event to Inngest.
+
+The Inngest workflow then:
+
+1. Fetches the webpage.
+2. Extracts the title and readable text with Cheerio.
+3. Sends the content to Groq AI.
+4. Saves the result in MongoDB.
+5. Returns the generated summary to the user.
 
 ## Getting Started
 
-First, run the development server:
+### 1. Install dependencies
+
+This project uses pnpm:
+
+```bash
+pnpm install
+```
+
+You can also use npm if needed:
+
+```bash
+npm install
+```
+
+### 2. Add environment variables
+
+Create a `.env.local` file in the project root:
+
+```env
+MONGODB_URI=your_mongodb_connection_string
+GROQ_API_KEY=your_groq_api_key
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+### 3. Start the development server
+
+```bash
+pnpm dev
+```
+
+Or:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Available Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm dev      # Start the development server
+pnpm build    # Create a production build
+pnpm start    # Start the production server
+pnpm lint     # Check the code with ESLint
+```
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```text
+app/                    Next.js pages and API routes
+  api/summary/          Summary API endpoint
+  api/inngest/          Inngest API endpoint
+inngest/                Background summarization workflow
+lib/scrapper.ts         Fetches and extracts webpage content
+lib/llm.ts              Sends webpage content to Groq AI
+lib/db.ts               MongoDB connection and summary model
+summary/                Summary page, form, service, and UI components
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Notes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- The URL must point to an HTML webpage.
+- The scraper keeps up to 20,000 characters of readable page content.
+- Webpages are treated as untrusted content and are sent to the AI only for summarization.
+- Previously generated summaries are cached in MongoDB.
 
-## Deploy on Vercel
+## Future Improvements
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Add user accounts and personal summary history.
+- Support exporting summaries as Markdown or PDF.
+- Add summary length and language options.
+- Improve support for pages that require JavaScript to render.
+- Add rate limiting and stronger URL validation.
